@@ -1,0 +1,65 @@
+public class Property extends BoardElement {
+    private int priceToBuy;
+    private int pricePerHouse;
+    private int baseRent;
+    private int rentWithOneHouse;
+    private int rentWithTwoHouses;
+    private int rentWithThreeHouses;
+    private int rentWithFourHouses;
+    private int hotelRent;
+
+    public Property(String name, int priceToBuy, int pricePerHouse, int baseRent, int rentWithOneHouse,
+                      int rentWithTwoHouses, int rentWithThreeHouses, int rentWithFourHouses, int hotelRent) {
+        super(name);
+        this.priceToBuy = priceToBuy;
+        this.pricePerHouse = pricePerHouse;
+        this.baseRent = baseRent;
+        this.rentWithOneHouse = rentWithOneHouse;
+        this.rentWithTwoHouses = rentWithTwoHouses;
+        this.rentWithThreeHouses = rentWithThreeHouses;
+        this.rentWithFourHouses = rentWithFourHouses;
+        this.hotelRent = hotelRent;
+    }
+
+    public int getRent(int houses, boolean hasHotel) {
+        if (hasHotel) {
+            return hotelRent;
+        }
+        switch (houses) {
+            case 1:
+                return rentWithOneHouse;
+            case 2:
+                return rentWithTwoHouses;
+            case 3:
+                return rentWithThreeHouses;
+            case 4:
+                return rentWithFourHouses;
+            default:
+                return baseRent;
+        }
+    }
+
+    public int getPriceToBuy() {
+        return priceToBuy;
+    }
+
+    public int getPricePerHouse() {
+        return pricePerHouse;
+    }
+
+    public int getBaseRent() {
+        return baseRent;
+    }
+
+    public int getHotelRent() {
+        return hotelRent;
+    }
+
+    @Override
+    public String toString() {
+        return "Property: " + getName() + ", Price: $" + priceToBuy + ", Base Rent: $" + baseRent +
+               ", Rent with 1 House: $" + rentWithOneHouse + ", Rent with 2 Houses: $" + rentWithTwoHouses +
+               ", Rent with 3 Houses: $" + rentWithThreeHouses + ", Rent with 4 Houses: $" + rentWithFourHouses +
+               ", Hotel Rent: $" + hotelRent;
+    }
+}

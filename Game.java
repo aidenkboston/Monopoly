@@ -87,6 +87,20 @@ public class Game {
             }
         }
 
+        if (player.getMoney() <= 0) {
+            System.out.println(player.getName() + " is bankrupt and out of the game!");
+            players.remove(player);
+            if (players.size() == 1) {
+                System.out.println(players.get(0).getName() + " wins the game!");
+                isGameOver = true;
+                return;
+            }
+            if (currentPlayerIndex >= players.size()) {
+                currentPlayerIndex = 0;
+            }
+            return;
+        }
+
         nextTurn();
     }
 

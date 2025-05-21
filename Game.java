@@ -4,7 +4,6 @@ import java.util.List;
 public class Game {
     private List<Player> players;
     private Dice dice;
-    private int boardSize;
     private int currentPlayerIndex;
     private boolean isGameOver;
 
@@ -14,7 +13,6 @@ public class Game {
             players.add(new Player(name, startingMoney));
         }
         this.dice = new Dice();
-        this.boardSize = boardSize;
         this.currentPlayerIndex = 0;
         this.isGameOver = false;
     }
@@ -27,19 +25,68 @@ public class Game {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 
-    public void playTurn() {
+    public void playTurn(Board board) {
         Player player = getCurrentPlayer();
+
         if (player.isInJail()) {
-            System.out.println(player.getName() + " is in jail and misses this turn.");
-            nextTurn();
-            return;
+            System.out.println(player.getName() + " is in jail (turn " + (player.getJailTurns() + 1) + ").");
+            dice.roll();
+            System.out.println(player.getName() + " rolled " + dice.getDie1() + " and " + dice.getDie2());
+            if (dice.isDouble()) {
+                System.out.println(player.getName() + " rolled doubles and is released from jail!");
+                player.releaseFromJail();
+            } else {
+                player.incrementJailTurns();
+                if (player.getJailTurns() >= 3) {
+                    System.out.println(player.getName() + " has served 3 turns and pays $50 to get out.");
+                    player.deductMoney(50);
+                    player.releaseFromJail();
+                } else {
+                    System.out.println(player.getName() + " did not roll doubles and remains in jail.");
+                    nextTurn();
+                    return;
+                }
+            }
         }
+
         dice.roll();
         int total = dice.getTotal();
         System.out.println(player.getName() + " rolled " + dice.getDie1() + " and " + dice.getDie2() + " (total: " + total + ")");
-        player.move(total, boardSize);
-        System.out.println(player.getName() + " moved to position " + player.getPosition());
-        // Add more game logic here (property, rent, etc.)
+        player.move(total, board.getTotalSpaces());
+        BoardElement space = board.getSpace(player.getPosition());
+        System.out.println(player.getName() + " landed on " + space.getName());
+
+        if (space instanceof NonProperty) {
+            String name = space.getName();
+            if (name.equalsIgnoreCase("Go to Jail")) {
+                player.sendToJail();
+                System.out.println(player.getName() + " is sent to Jail!");
+                nextTurn();
+                return;
+            }
+            System.out.println(((NonProperty) space).getDescription());
+        } else if (space instanceof Property) {
+            Property property = (Property) space;
+            if (!property.isOwned()) {
+                // For now, auto-buy if player can afford it
+                if (player.getMoney() >= property.getPriceToBuy()) {
+                    player.deductMoney(property.getPriceToBuy());
+                    property.setOwner(player);
+                    player.addProperty(property);
+                    System.out.println(player.getName() + " bought " + property.getName() + " for $" + property.getPriceToBuy());
+                } else {
+                    System.out.println(player.getName() + " cannot afford " + property.getName());
+                }
+            } else if (property.getOwner() != player) {
+                int rent = property.getBaseRent(); // No houses/hotels yet
+                player.deductMoney(rent);
+                property.getOwner().addMoney(rent);
+                System.out.println(player.getName() + " paid $" + rent + " rent to " + property.getOwner().getName());
+            } else {
+                System.out.println(player.getName() + " owns this property.");
+            }
+        }
+
         nextTurn();
     }
 

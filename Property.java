@@ -7,6 +7,7 @@ public class Property extends BoardElement {
     private int rentWithThreeHouses;
     private int rentWithFourHouses;
     private int hotelRent;
+    private Player owner = null;
 
     public Property(String name, int priceToBuy, int pricePerHouse, int baseRent, int rentWithOneHouse,
                       int rentWithTwoHouses, int rentWithThreeHouses, int rentWithFourHouses, int hotelRent) {
@@ -53,6 +54,18 @@ public class Property extends BoardElement {
 
     public int getHotelRent() {
         return hotelRent;
+    }
+
+    public Player getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Player owner) {
+        this.owner = owner;
+    }
+
+    public boolean isOwned() {
+        return owner != null;
     }
 
     @Override

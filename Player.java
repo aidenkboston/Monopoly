@@ -8,6 +8,8 @@ public class Player {
     private boolean inJail;
     private int jailTurns = 0; // Add this field
     private List<Property> properties; // List of owned properties
+    private List<Railroad> railroads = new ArrayList<>();
+    private List<Utility> utilities = new ArrayList<>();
 
     public Player(String name, int startingMoney) {
         this.name = name;
@@ -47,6 +49,14 @@ public class Player {
 
     public void removeProperty(Property property) {
         properties.remove(property);
+    }
+
+    public void addRailroad(Railroad rr) {
+        railroads.add(rr);
+    }
+
+    public void addUtility(Utility util) {
+        utilities.add(util);
     }
 
     public boolean move(int steps, int boardSize) {

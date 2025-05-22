@@ -92,20 +92,54 @@ public class Game {
                     System.out.println(player.getName() + " is sent to Jail!");
                     nextTurn();
                     return;
+                } else if (name.equalsIgnoreCase("Income Tax")) {
+                    int tax = Math.min(200, (int)(player.getMoney() * 0.10));
+                    player.deductMoney(tax);
+                    System.out.println(player.getName() + " pays Income Tax: $" + tax);
+                } else if (name.equalsIgnoreCase("Luxury Tax")) {
+                    player.deductMoney(75);
+                    System.out.println(player.getName() + " pays Luxury Tax: $75");
+                } else if (name.equalsIgnoreCase("Community Chest")) {
+                    Card card = board.drawCommunityChest();
+                    System.out.println("Community Chest: " + card.getDescription());
+                    player.addMoney(card.getMoneyEffect());
+                    System.out.println(player.getName() + " now has $" + player.getMoney());
+                } else if (name.equalsIgnoreCase("Chance")) {
+                    Card card = board.drawChance();
+                    System.out.println("Chance: " + card.getDescription());
+                    player.addMoney(card.getMoneyEffect());
+                    System.out.println(player.getName() + " now has $" + player.getMoney());
+                } else {
+                    System.out.println("Space description: " + ((NonProperty) space).getDescription());
                 }
-                System.out.println("Space description: " + ((NonProperty) space).getDescription());
             } else if (space instanceof Property) {
                 Property property = (Property) space;
                 System.out.println("Property status: " + (property.isOwned() ? "Owned by " + property.getOwner().getName() : "Unowned"));
                 if (!property.isOwned()) {
-                    if (player.getMoney() >= property.getPriceToBuy()) {
-                        System.out.println(player.getName() + " buys " + property.getName() + " for $" + property.getPriceToBuy());
-                        player.deductMoney(property.getPriceToBuy());
+                    int price = property.getPriceToBuy();
+                    if (player.getMoney() - price > 0) { // Must have at least $1 left after purchase
+                        System.out.println(player.getName() + " buys " + property.getName() + " for $" + price);
+                        player.deductMoney(price);
                         property.setOwner(player);
                         player.addProperty(property);
                         System.out.println(player.getName() + " now has $" + player.getMoney());
                     } else {
-                        System.out.println(player.getName() + " cannot afford " + property.getName() + " ($" + property.getPriceToBuy() + ")");
+                        System.out.println(player.getName() + " cannot afford " + property.getName() + " ($" + price + ") without going bankrupt.");
+                    }
+                } else if (property.getOwner() == player) {
+                    int housePrice = property.getPricePerHouse();
+                    if (property.canBuyHouse() && player.getMoney() - housePrice > 0
+                        && player.ownsFullSet(property.getColor(), board.getSpaces())) {
+                        property.buyHouse();
+                        player.deductMoney(housePrice);
+                        System.out.println(player.getName() + " bought a house on " + property.getName() + " for $" + housePrice);
+                        System.out.println(player.getName() + " now has $" + player.getMoney());
+                    } else if (property.canBuyHotel() && player.getMoney() - housePrice > 0
+                        && player.ownsFullSet(property.getColor(), board.getSpaces())) {
+                        property.buyHotel();
+                        player.deductMoney(housePrice);
+                        System.out.println(player.getName() + " bought a hotel on " + property.getName() + " for $" + housePrice);
+                        System.out.println(player.getName() + " now has $" + player.getMoney());
                     }
                 } else if (property.getOwner() != player) {
                     int rent = property.getRent(property.getHouses(), property.hasHotel());
@@ -116,19 +150,53 @@ public class Game {
                     System.out.println(property.getOwner().getName() + " now has $" + property.getOwner().getMoney());
                 } else {
                     System.out.println(player.getName() + " owns this property.");
-                    if (property.canBuyHouse() && player.getMoney() >= property.getPricePerHouse()
-                        && player.ownsFullSet(property.getColor(), board.getSpaces())) {
-                        property.buyHouse();
-                        player.deductMoney(property.getPricePerHouse());
-                        System.out.println(player.getName() + " bought a house on " + property.getName() + " for $" + property.getPricePerHouse());
+                }
+            } else if (space instanceof Railroad) {
+                Railroad rr = (Railroad) space;
+                System.out.println("Railroad status: " + (rr.isOwned() ? "Owned by " + rr.getOwner().getName() : "Unowned"));
+                if (!rr.isOwned()) {
+                    if (player.getMoney() - rr.getPrice() > 0) {
+                        System.out.println(player.getName() + " buys " + rr.getName() + " for $" + rr.getPrice());
+                        player.deductMoney(rr.getPrice());
+                        rr.setOwner(player);
+                        player.addRailroad(rr); // You may want to add this method to Player
                         System.out.println(player.getName() + " now has $" + player.getMoney());
-                    } else if (property.canBuyHotel() && player.getMoney() >= property.getPricePerHouse()
-                        && player.ownsFullSet(property.getColor(), board.getSpaces())) {
-                        property.buyHotel();
-                        player.deductMoney(property.getPricePerHouse());
-                        System.out.println(player.getName() + " bought a hotel on " + property.getName() + " for $" + property.getPricePerHouse());
-                        System.out.println(player.getName() + " now has $" + player.getMoney());
+                    } else {
+                        System.out.println(player.getName() + " cannot afford " + rr.getName() + " ($" + rr.getPrice() + ")");
                     }
+                } else if (rr.getOwner() != player) {
+                    int rent = rr.calculateRent(rr.getOwner(), board.getSpaces());
+                    System.out.println(player.getName() + " must pay railroad rent: $" + rent + " to " + rr.getOwner().getName());
+                    player.deductMoney(rent);
+                    rr.getOwner().addMoney(rent);
+                    System.out.println(player.getName() + " now has $" + player.getMoney());
+                    System.out.println(rr.getOwner().getName() + " now has $" + rr.getOwner().getMoney());
+                } else {
+                    System.out.println(player.getName() + " owns this railroad.");
+                }
+            } else if (space instanceof Utility) {
+                Utility util = (Utility) space;
+                System.out.println("Utility status: " + (util.isOwned() ? "Owned by " + util.getOwner().getName() : "Unowned"));
+                if (!util.isOwned()) {
+                    if (player.getMoney() - util.getPrice() > 0) {
+                        System.out.println(player.getName() + " buys " + util.getName() + " for $" + util.getPrice());
+                        player.deductMoney(util.getPrice());
+                        util.setOwner(player);
+                        player.addUtility(util); // You may want to add this method to Player
+                        System.out.println(player.getName() + " now has $" + player.getMoney());
+                    } else {
+                        System.out.println(player.getName() + " cannot afford " + util.getName() + " ($" + util.getPrice() + ")");
+                    }
+                } else if (util.getOwner() != player) {
+                    int diceRoll = dice.getTotal();
+                    int rent = util.calculateRent(util.getOwner(), board.getSpaces(), diceRoll);
+                    System.out.println(player.getName() + " must pay utility rent: $" + rent + " to " + util.getOwner().getName());
+                    player.deductMoney(rent);
+                    util.getOwner().addMoney(rent);
+                    System.out.println(player.getName() + " now has $" + player.getMoney());
+                    System.out.println(util.getOwner().getName() + " now has $" + util.getOwner().getMoney());
+                } else {
+                    System.out.println(player.getName() + " owns this utility.");
                 }
             }
 
@@ -163,6 +231,7 @@ public class Game {
 
         System.out.println("End of " + player.getName() + "'s turn. Money: $" + player.getMoney());
         System.out.println("==============================");
+        nextTurn();
     }
 
     public boolean isGameOver() {

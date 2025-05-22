@@ -8,6 +8,8 @@ public class Property extends BoardElement {
     private int rentWithFourHouses;
     private int hotelRent;
     private Player owner = null;
+    private int houses = 0;
+    private boolean hotel = false;
 
     public Property(String name, int priceToBuy, int pricePerHouse, int baseRent, int rentWithOneHouse,
                       int rentWithTwoHouses, int rentWithThreeHouses, int rentWithFourHouses, int hotelRent) {
@@ -66,6 +68,35 @@ public class Property extends BoardElement {
 
     public boolean isOwned() {
         return owner != null;
+    }
+
+    public int getHouses() {
+        return houses;
+    }
+
+    public boolean hasHotel() {
+        return hotel;
+    }
+
+    public boolean canBuyHouse() {
+        return !hotel && houses < 4;
+    }
+
+    public boolean canBuyHotel() {
+        return !hotel && houses == 4;
+    }
+
+    public void buyHouse() {
+        if (canBuyHouse()) {
+            houses++;
+        }
+    }
+
+    public void buyHotel() {
+        if (canBuyHotel()) {
+            hotel = true;
+            houses = 0;
+        }
     }
 
     @Override

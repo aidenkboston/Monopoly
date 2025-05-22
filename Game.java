@@ -28,6 +28,26 @@ public class Game {
     public void playTurn(Board board) {
         Player player = getCurrentPlayer();
 
+        System.out.println();
+        System.out.println("==============================");
+        System.out.println("It's " + player.getName() + "'s turn!");
+        System.out.println("Current money: $" + player.getMoney());
+        System.out.print("Properties owned: ");
+        if (player.getProperties().isEmpty()) {
+            System.out.println("None");
+        } else {
+            for (Property prop : player.getProperties()) {
+                System.out.print(prop.getName());
+                if (prop.hasHotel()) {
+                    System.out.print(" (Hotel)");
+                } else if (prop.getHouses() > 0) {
+                    System.out.print(" (" + prop.getHouses() + " houses)");
+                }
+                System.out.print("; ");
+            }
+            System.out.println();
+        }
+
         if (player.isInJail()) {
             System.out.println(player.getName() + " is in jail (turn " + (player.getJailTurns() + 1) + ").");
             dice.roll();
@@ -55,11 +75,12 @@ public class Game {
             dice.roll();
             int total = dice.getTotal();
             rolledDouble = dice.isDouble();
+            System.out.println();
             System.out.println(player.getName() + " rolled " + dice.getDie1() + " and " + dice.getDie2() + " (total: " + total + ")");
             boolean passedGo = player.move(total, board.getTotalSpaces());
             if (passedGo) {
                 player.addMoney(200);
-                System.out.println(player.getName() + " collected $200 for passing GO!");
+                System.out.println(player.getName() + " collected $200 for passing GO! New balance: $" + player.getMoney());
             }
             BoardElement space = board.getSpace(player.getPosition());
             System.out.println(player.getName() + " landed on " + space.getName());
@@ -72,38 +93,50 @@ public class Game {
                     nextTurn();
                     return;
                 }
-                System.out.println(((NonProperty) space).getDescription());
+                System.out.println("Space description: " + ((NonProperty) space).getDescription());
             } else if (space instanceof Property) {
                 Property property = (Property) space;
+                System.out.println("Property status: " + (property.isOwned() ? "Owned by " + property.getOwner().getName() : "Unowned"));
                 if (!property.isOwned()) {
-                    // For now, auto-buy if player can afford it
                     if (player.getMoney() >= property.getPriceToBuy()) {
+                        System.out.println(player.getName() + " buys " + property.getName() + " for $" + property.getPriceToBuy());
                         player.deductMoney(property.getPriceToBuy());
                         property.setOwner(player);
                         player.addProperty(property);
-                        System.out.println(player.getName() + " bought " + property.getName() + " for $" + property.getPriceToBuy());
+                        System.out.println(player.getName() + " now has $" + player.getMoney());
                     } else {
-                        System.out.println(player.getName() + " cannot afford " + property.getName());
+                        System.out.println(player.getName() + " cannot afford " + property.getName() + " ($" + property.getPriceToBuy() + ")");
                     }
                 } else if (property.getOwner() != player) {
-                    int rent = property.getBaseRent(); // No houses/hotels yet
+                    int rent = property.getRent(property.getHouses(), property.hasHotel());
+                    System.out.println(player.getName() + " must pay rent: $" + rent + " to " + property.getOwner().getName());
                     player.deductMoney(rent);
                     property.getOwner().addMoney(rent);
-                    System.out.println(player.getName() + " paid $" + rent + " to " + property.getOwner().getName());
+                    System.out.println(player.getName() + " now has $" + player.getMoney());
+                    System.out.println(property.getOwner().getName() + " now has $" + property.getOwner().getMoney());
                 } else {
                     System.out.println(player.getName() + " owns this property.");
+                    if (property.canBuyHouse() && player.getMoney() >= property.getPricePerHouse()) {
+                        property.buyHouse();
+                        player.deductMoney(property.getPricePerHouse());
+                        System.out.println(player.getName() + " bought a house on " + property.getName() + " for $" + property.getPricePerHouse());
+                        System.out.println(player.getName() + " now has $" + player.getMoney());
+                    } else if (property.canBuyHotel() && player.getMoney() >= property.getPricePerHouse()) {
+                        property.buyHotel();
+                        player.deductMoney(property.getPricePerHouse());
+                        System.out.println(player.getName() + " bought a hotel on " + property.getName() + " for $" + property.getPricePerHouse());
+                        System.out.println(player.getName() + " now has $" + player.getMoney());
+                    }
                 }
             }
 
             if (player.getMoney() <= 0) {
                 System.out.println(player.getName() + " is bankrupt and out of the game!");
-                // Release all properties
                 for (Property property : new ArrayList<>(player.getProperties())) {
                     property.setOwner(null);
                     player.removeProperty(property);
                 }
                 players.remove(player);
-                // Adjust currentPlayerIndex if needed
                 if (currentPlayerIndex >= players.size()) {
                     currentPlayerIndex = 0;
                 }
@@ -111,7 +144,7 @@ public class Game {
                     System.out.println(players.get(0).getName() + " wins the game!");
                     isGameOver = true;
                 }
-                return; // Immediately stop this turn
+                return;
             }
 
             if (rolledDouble) {
@@ -126,7 +159,8 @@ public class Game {
             }
         } while (rolledDouble && !player.isInJail());
 
-        nextTurn();
+        System.out.println("End of " + player.getName() + "'s turn. Money: $" + player.getMoney());
+        System.out.println("==============================");
     }
 
     public boolean isGameOver() {

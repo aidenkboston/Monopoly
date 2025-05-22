@@ -23,32 +23,21 @@ public class Main {
         System.out.println("Let the game begin!");
 
         int turnCount = 0;
-        while (!game.isGameOver()) {
-            Player player = game.getCurrentPlayer();
+        while (!game.isGameOver() && game.getPlayers().size() > 1) {
             System.out.println("\n--- Turn " + (turnCount + 1) + " ---");
-            System.out.println("Current player: " + player.getName());
-            System.out.println("Money: $" + player.getMoney());
-            System.out.println("Position: " + player.getPosition() + " (" + board.getSpace(player.getPosition()).getName() + ")");
-            if (!player.getProperties().isEmpty()) {
-                System.out.print("Properties owned: ");
-                player.getProperties().forEach(p -> System.out.print(p.getName() + ", "));
-                System.out.println();
-            } else {
-                System.out.println("No properties owned.");
-            }
             if (slowMode) {
                 System.out.print("Press Enter to roll the dice...");
                 scanner.nextLine();
             }
-
             game.playTurn(board);
-
-            if (game.isGameOver()) {
-                System.out.println("Game over!");
-                System.out.println("Winner: " + game.getPlayers().get(0).getName());
-                break;
-            }
             turnCount++;
+        }
+
+        System.out.println("Game over!");
+        if (game.getPlayers().size() == 1) {
+            System.out.println("Winner: " + game.getPlayers().get(0).getName());
+        } else {
+            System.out.println("No players left.");
         }
         scanner.close();
     }

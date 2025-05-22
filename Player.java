@@ -86,4 +86,16 @@ public class Player {
             System.out.println(player.getName() + " collected $200 for passing GO!");
         }
     }
+
+    public boolean ownsFullSet(String color, List<BoardElement> spaces) {
+        for (BoardElement elem : spaces) {
+            if (elem instanceof Property) {
+                Property prop = (Property) elem;
+                if (prop.getColor().equals(color) && prop.getOwner() != this) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

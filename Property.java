@@ -11,9 +11,9 @@ public class Property extends BoardElement {
     private int houses = 0;
     private boolean hotel = false;
 
-    public Property(String name, int priceToBuy, int pricePerHouse, int baseRent, int rentWithOneHouse,
+    public Property(String name, String color, int priceToBuy, int pricePerHouse, int baseRent, int rentWithOneHouse,
                       int rentWithTwoHouses, int rentWithThreeHouses, int rentWithFourHouses, int hotelRent) {
-        super(name);
+        super(name, color); // Pass color to BoardElement
         this.priceToBuy = priceToBuy;
         this.pricePerHouse = pricePerHouse;
         this.baseRent = baseRent;
@@ -101,7 +101,7 @@ public class Property extends BoardElement {
 
     @Override
     public String toString() {
-        return "Property: " + getName() + ", Price: $" + priceToBuy + ", Base Rent: $" + baseRent +
+        return "Property: " + getName() + ", Color: " + getColor() + ", Price: $" + priceToBuy + ", Base Rent: $" + baseRent +
                ", Rent with 1 House: $" + rentWithOneHouse + ", Rent with 2 Houses: $" + rentWithTwoHouses +
                ", Rent with 3 Houses: $" + rentWithThreeHouses + ", Rent with 4 Houses: $" + rentWithFourHouses +
                ", Hotel Rent: $" + hotelRent;

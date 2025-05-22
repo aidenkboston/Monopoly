@@ -116,12 +116,14 @@ public class Game {
                     System.out.println(property.getOwner().getName() + " now has $" + property.getOwner().getMoney());
                 } else {
                     System.out.println(player.getName() + " owns this property.");
-                    if (property.canBuyHouse() && player.getMoney() >= property.getPricePerHouse()) {
+                    if (property.canBuyHouse() && player.getMoney() >= property.getPricePerHouse()
+                        && player.ownsFullSet(property.getColor(), board.getSpaces())) {
                         property.buyHouse();
                         player.deductMoney(property.getPricePerHouse());
                         System.out.println(player.getName() + " bought a house on " + property.getName() + " for $" + property.getPricePerHouse());
                         System.out.println(player.getName() + " now has $" + player.getMoney());
-                    } else if (property.canBuyHotel() && player.getMoney() >= property.getPricePerHouse()) {
+                    } else if (property.canBuyHotel() && player.getMoney() >= property.getPricePerHouse()
+                        && player.ownsFullSet(property.getColor(), board.getSpaces())) {
                         property.buyHotel();
                         player.deductMoney(property.getPricePerHouse());
                         System.out.println(player.getName() + " bought a hotel on " + property.getName() + " for $" + property.getPricePerHouse());

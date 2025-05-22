@@ -49,8 +49,11 @@ public class Player {
         properties.remove(property);
     }
 
-    public void move(int steps, int boardSize) {
+    public boolean move(int steps, int boardSize) {
+        int oldPosition = position;
         position = (position + steps) % boardSize;
+        // Return true if passed or landed on GO (position 0)
+        return (oldPosition + steps) >= boardSize || position == 0;
     }
 
     public void addMoney(int amount) {
@@ -74,5 +77,13 @@ public class Player {
 
     public void incrementJailTurns() {
         jailTurns++;
+    }
+
+    public void movePlayer(Player player, int total, Board board) {
+        boolean passedGo = player.move(total, board.getTotalSpaces());
+        if (passedGo) {
+            player.addMoney(200);
+            System.out.println(player.getName() + " collected $200 for passing GO!");
+        }
     }
 }

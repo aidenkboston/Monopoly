@@ -49,57 +49,82 @@ public class Game {
             }
         }
 
-        dice.roll();
-        int total = dice.getTotal();
-        System.out.println(player.getName() + " rolled " + dice.getDie1() + " and " + dice.getDie2() + " (total: " + total + ")");
-        player.move(total, board.getTotalSpaces());
-        BoardElement space = board.getSpace(player.getPosition());
-        System.out.println(player.getName() + " landed on " + space.getName());
-
-        if (space instanceof NonProperty) {
-            String name = space.getName();
-            if (name.equalsIgnoreCase("Go to Jail")) {
-                player.sendToJail();
-                System.out.println(player.getName() + " is sent to Jail!");
-                nextTurn();
-                return;
+        boolean rolledDouble;
+        int doublesCount = 0;
+        do {
+            dice.roll();
+            int total = dice.getTotal();
+            rolledDouble = dice.isDouble();
+            System.out.println(player.getName() + " rolled " + dice.getDie1() + " and " + dice.getDie2() + " (total: " + total + ")");
+            boolean passedGo = player.move(total, board.getTotalSpaces());
+            if (passedGo) {
+                player.addMoney(200);
+                System.out.println(player.getName() + " collected $200 for passing GO!");
             }
-            System.out.println(((NonProperty) space).getDescription());
-        } else if (space instanceof Property) {
-            Property property = (Property) space;
-            if (!property.isOwned()) {
-                // For now, auto-buy if player can afford it
-                if (player.getMoney() >= property.getPriceToBuy()) {
-                    player.deductMoney(property.getPriceToBuy());
-                    property.setOwner(player);
-                    player.addProperty(property);
-                    System.out.println(player.getName() + " bought " + property.getName() + " for $" + property.getPriceToBuy());
-                } else {
-                    System.out.println(player.getName() + " cannot afford " + property.getName());
+            BoardElement space = board.getSpace(player.getPosition());
+            System.out.println(player.getName() + " landed on " + space.getName());
+
+            if (space instanceof NonProperty) {
+                String name = space.getName();
+                if (name.equalsIgnoreCase("Go to Jail")) {
+                    player.sendToJail();
+                    System.out.println(player.getName() + " is sent to Jail!");
+                    nextTurn();
+                    return;
                 }
-            } else if (property.getOwner() != player) {
-                int rent = property.getBaseRent(); // No houses/hotels yet
-                player.deductMoney(rent);
-                property.getOwner().addMoney(rent);
-                System.out.println(player.getName() + " paid $" + rent + " rent to " + property.getOwner().getName());
-            } else {
-                System.out.println(player.getName() + " owns this property.");
+                System.out.println(((NonProperty) space).getDescription());
+            } else if (space instanceof Property) {
+                Property property = (Property) space;
+                if (!property.isOwned()) {
+                    // For now, auto-buy if player can afford it
+                    if (player.getMoney() >= property.getPriceToBuy()) {
+                        player.deductMoney(property.getPriceToBuy());
+                        property.setOwner(player);
+                        player.addProperty(property);
+                        System.out.println(player.getName() + " bought " + property.getName() + " for $" + property.getPriceToBuy());
+                    } else {
+                        System.out.println(player.getName() + " cannot afford " + property.getName());
+                    }
+                } else if (property.getOwner() != player) {
+                    int rent = property.getBaseRent(); // No houses/hotels yet
+                    player.deductMoney(rent);
+                    property.getOwner().addMoney(rent);
+                    System.out.println(player.getName() + " paid $" + rent + " to " + property.getOwner().getName());
+                } else {
+                    System.out.println(player.getName() + " owns this property.");
+                }
             }
-        }
 
-        if (player.getMoney() <= 0) {
-            System.out.println(player.getName() + " is bankrupt and out of the game!");
-            players.remove(player);
-            if (players.size() == 1) {
-                System.out.println(players.get(0).getName() + " wins the game!");
-                isGameOver = true;
-                return;
+            if (player.getMoney() <= 0) {
+                System.out.println(player.getName() + " is bankrupt and out of the game!");
+                // Release all properties
+                for (Property property : new ArrayList<>(player.getProperties())) {
+                    property.setOwner(null);
+                    player.removeProperty(property);
+                }
+                players.remove(player);
+                // Adjust currentPlayerIndex if needed
+                if (currentPlayerIndex >= players.size()) {
+                    currentPlayerIndex = 0;
+                }
+                if (players.size() == 1) {
+                    System.out.println(players.get(0).getName() + " wins the game!");
+                    isGameOver = true;
+                }
+                return; // Immediately stop this turn
             }
-            if (currentPlayerIndex >= players.size()) {
-                currentPlayerIndex = 0;
+
+            if (rolledDouble) {
+                doublesCount++;
+                if (doublesCount == 3) {
+                    System.out.println(player.getName() + " rolled doubles three times in a row and is sent to Jail!");
+                    player.sendToJail();
+                    nextTurn();
+                    return;
+                }
+                System.out.println(player.getName() + " rolled doubles and gets to roll again!");
             }
-            return;
-        }
+        } while (rolledDouble && !player.isInJail());
 
         nextTurn();
     }

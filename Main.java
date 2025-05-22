@@ -12,6 +12,10 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Welcome to Monopoly!");
+        System.out.println("Would you like to play fast or slow? (Enter 'fast' or 'slow')");
+        String mode = scanner.nextLine().trim().toLowerCase();
+        boolean slowMode = !mode.equals("fast");
+
         System.out.println("Players:");
         for (Player p : game.getPlayers()) {
             System.out.println("- " + p.getName());
@@ -32,8 +36,10 @@ public class Main {
             } else {
                 System.out.println("No properties owned.");
             }
-            System.out.print("Press Enter to roll the dice...");
-            scanner.nextLine();
+            if (slowMode) {
+                System.out.print("Press Enter to roll the dice...");
+                scanner.nextLine();
+            }
 
             game.playTurn(board);
 

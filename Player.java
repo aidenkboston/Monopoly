@@ -43,6 +43,14 @@ public class Player {
         return properties;
     }
 
+    public List<Railroad> getRailroads() {
+        return railroads;
+    }
+
+    public List<Utility> getUtilities() {
+        return utilities;
+    }
+
     public void addProperty(Property property) {
         properties.add(property);
     }
